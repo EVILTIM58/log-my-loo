@@ -28,9 +28,6 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
       setPhotoPreview(null);
       setError(null);
       setIsGettingLocation(false);
-      
-      // Try to get location automatically in background
-      getLocation();
     }
   }, [open]);
 
