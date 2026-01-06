@@ -20,8 +20,21 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   const [manualMode, setManualMode] = useState(false);
 
   useEffect(() => {
-    if (open && !location) {
-      getLocation();
+    if (open) {
+      // Reset state when modal opens
+      if (!location) {
+        getLocation();
+      }
+    } else {
+      // Reset everything when modal closes
+      setLocation(null);
+      setLocationName('');
+      setNotes('');
+      setPhoto(null);
+      setPhotoPreview(null);
+      setError(null);
+      setManualMode(false);
+      setIsGettingLocation(false);
     }
   }, [open]);
 
@@ -95,18 +108,16 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
     });
 
     setIsSubmitting(false);
-    setLocation(null);
-    setLocationName('');
-    setNotes('');
-    setPhoto(null);
-    setPhotoPreview(null);
     onOpenChange(false);
     onSuccess?.();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 border-amber-500/20 text-white">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent 
+        className="sm:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 border-amber-500/20 text-white"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <span className="text-3xl">💩</span>
