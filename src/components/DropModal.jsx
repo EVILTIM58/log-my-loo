@@ -103,7 +103,7 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 border-amber-500/20 text-white"
+        className="sm:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 border-amber-500/20 text-white z-[9999]"
       >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
