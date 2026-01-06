@@ -22,11 +22,6 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   useEffect(() => {
     if (open) {
       // Reset state when modal opens
-      if (!location) {
-        getLocation();
-      }
-    } else {
-      // Reset everything when modal closes
       setLocation(null);
       setLocationName('');
       setNotes('');
@@ -35,6 +30,11 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
       setError(null);
       setManualMode(false);
       setIsGettingLocation(false);
+      
+      // Request location after a small delay to let modal render first
+      setTimeout(() => {
+        getLocation();
+      }, 100);
     }
   }, [open]);
 
