@@ -17,7 +17,6 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [manualMode, setManualMode] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -28,33 +27,26 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
       setPhoto(null);
       setPhotoPreview(null);
       setError(null);
-      setManualMode(false);
       setIsGettingLocation(false);
       
-      // Request location after a small delay to let modal render first
-      setTimeout(() => {
-        getLocation();
-      }, 100);
+      // Try to get location automatically in background
+      getLocation();
     }
   }, [open]);
 
   const getLocation = () => {
-    setIsGettingLocation(true);
-    setError(null);
-    
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      setIsGettingLocation(false);
-      setManualMode(true);
+      setError('Geolocation is not supported - enter coordinates manually');
       return;
     }
 
-    // Add timeout to prevent hanging
+    setIsGettingLocation(true);
+    setError(null);
+
     const timeout = setTimeout(() => {
       setIsGettingLocation(false);
-      setError('Location request timed out. You can enter coordinates manually.');
-      setManualMode(true);
-    }, 10000);
+      setError('GPS timeout - enter coordinates manually');
+    }, 5000);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -67,11 +59,10 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
       },
       (err) => {
         clearTimeout(timeout);
-        setError('Unable to get your location. You can enter coordinates manually or retry.');
         setIsGettingLocation(false);
-        setManualMode(true);
+        setError('GPS denied - enter coordinates manually');
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
     );
   };
 
@@ -113,10 +104,9 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="sm:max-w-md bg-gradient-to-br from-slate-900 to-slate-800 border-amber-500/20 text-white"
-        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
@@ -158,24 +148,10 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
                 </Button>
               )}
             </div>
-            {error && (
-              <div className="mt-3">
-                <p className="text-red-400 text-sm">{error}</p>
-                {!manualMode && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => setManualMode(true)}
-                    className="mt-2 text-xs"
-                  >
-                    Enter Coordinates Manually
-                  </Button>
-                )}
-              </div>
-            )}
+            {error && <p className="text-amber-400 text-xs mt-2">{error}</p>}
             
-            {/* Manual Coordinate Entry */}
-            {manualMode && !location && (
+            {/* Manual Coordinate Entry - always show if no location */}
+            {!location && (
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-slate-400">Latitude</Label>
