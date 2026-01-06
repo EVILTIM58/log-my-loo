@@ -65,7 +65,7 @@ export default function DropDetailPanel({ drop, open, onOpenChange, onUpdate }) 
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg bg-gradient-to-br from-slate-900 to-slate-800 border-l-amber-500/20 text-white overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-lg bg-gradient-to-br from-slate-900 to-slate-800 border-l-amber-500/20 text-white overflow-y-auto z-[9999]">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-xl font-bold text-white flex items-center gap-2">
             <span className="text-2xl">📍</span>
