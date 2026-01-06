@@ -17,6 +17,7 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [manualMode, setManualMode] = useState(false);
 
   useEffect(() => {
     if (open && !location) {
@@ -31,11 +32,20 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
       setIsGettingLocation(false);
+      setManualMode(true);
       return;
     }
 
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      setIsGettingLocation(false);
+      setError('Location request timed out. You can enter coordinates manually.');
+      setManualMode(true);
+    }, 10000);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        clearTimeout(timeout);
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
@@ -43,10 +53,12 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
         setIsGettingLocation(false);
       },
       (err) => {
-        setError('Unable to get your location. Please enable location services.');
+        clearTimeout(timeout);
+        setError('Unable to get your location. You can enter coordinates manually or retry.');
         setIsGettingLocation(false);
+        setManualMode(true);
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
@@ -116,24 +128,76 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
                     <Target className={`h-5 w-5 ${location ? 'text-green-400' : 'text-amber-400'}`} />
                   )}
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-slate-300">GPS Location</p>
                   {location ? (
                     <p className="text-xs text-slate-500">
                       {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                     </p>
+                  ) : isGettingLocation ? (
+                    <p className="text-xs text-slate-500">Waiting for permission...</p>
                   ) : (
-                    <p className="text-xs text-slate-500">Acquiring...</p>
+                    <p className="text-xs text-slate-500">Not acquired</p>
                   )}
                 </div>
               </div>
               {!location && !isGettingLocation && (
                 <Button size="sm" variant="ghost" onClick={getLocation} className="text-amber-400 hover:text-amber-300">
-                  Retry
+                  Retry GPS
                 </Button>
               )}
             </div>
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            {error && (
+              <div className="mt-3">
+                <p className="text-red-400 text-sm">{error}</p>
+                {!manualMode && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setManualMode(true)}
+                    className="mt-2 text-xs"
+                  >
+                    Enter Coordinates Manually
+                  </Button>
+                )}
+              </div>
+            )}
+            
+            {/* Manual Coordinate Entry */}
+            {manualMode && !location && (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-slate-400">Latitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="40.7128"
+                    onChange={(e) => {
+                      const lat = parseFloat(e.target.value);
+                      if (!isNaN(lat)) {
+                        setLocation(prev => ({ ...prev, latitude: lat, longitude: prev?.longitude || 0 }));
+                      }
+                    }}
+                    className="bg-slate-900/50 border-slate-700 text-white text-sm h-8"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">Longitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="-74.0060"
+                    onChange={(e) => {
+                      const lng = parseFloat(e.target.value);
+                      if (!isNaN(lng)) {
+                        setLocation(prev => ({ ...prev, longitude: lng, latitude: prev?.latitude || 0 }));
+                      }
+                    }}
+                    className="bg-slate-900/50 border-slate-700 text-white text-sm h-8"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Location Name */}
