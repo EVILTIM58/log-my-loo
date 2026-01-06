@@ -72,9 +72,13 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    if (!location) return;
+    if (!location || !location.latitude || !location.longitude) {
+      setError('Please enter valid coordinates');
+      return;
+    }
     
     setIsSubmitting(true);
+    setError(null);
     
     let photoUrl = null;
     if (photo) {
@@ -236,8 +240,8 @@ export default function DropModal({ open, onOpenChange, onSuccess }) {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={handleSubmit}
-              disabled={!location || isSubmitting}
-              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25"
+              disabled={isSubmitting || !location?.latitude || !location?.longitude}
+              className="w-full h-14 text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
